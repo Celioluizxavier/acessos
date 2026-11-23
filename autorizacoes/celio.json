@@ -1,1 +1,8 @@
-pasta de acessos
+{
+  "usuario": "celio",
+  "senha_hash": "XtIMu4lFGJrsZBAC2TGD03tvqS1iijRcyeJcnbdsTMk=",
+  "salt": "QOebfWeW52qTSUprYijVkA==",
+  "vencimento": "2026-11-23T23:59:59-03:00",
+  "assinatura": "iT5NSVZ4AATOrQhYCaCKMCWZaXQJthyZn5KNVu4jSwzLyDrPtKH6DVDaF2r3JMnYYOnyFt3mPuSd/N6D+hAtAw==",
+  "gerado_em": "2026-11-23T08:53:53-03:00"
+}
