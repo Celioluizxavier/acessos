@@ -18,13 +18,12 @@
     //    Use {usuario} para ter UM ARQUIVO POR USUÁRIO (vários clientes):
     //    .../main/autorizacoes/{usuario}.json   → maria entra com maria.json, joao com joao.json
     //    Sem {usuario} a URL aponta para um arquivo único (um só usuário).
-    URL_ARQUIVO: 'https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPOSITORIO/main/autorizacoes/{usuario}.json',
+    URL_ARQUIVO: 'https://raw.githubusercontent.com/Celioluizxavier/acessos/refs/heads/main/autorizacoes/{usuario}.json',
 
-    // 2) CHAVE PÚBLICA gerada no admin.html (é pública, pode ficar no código)
-    CHAVE_PUBLICA: {
-      alg: 'Ed25519',                 // ou 'ES256' (o admin.html informa qual usar)
-      b64: 'COLE_AQUI_A_CHAVE_PUBLICA_EM_BASE64'
-    },
+CHAVE_PUBLICA: {
+  alg: 'Ed25519',
+  b64: 'MCowBQYDK2VwAyEAaq646x6+KqL7kK2k9vZRaAMwev9orceDpzVrVlIas1Y='
+},
 
     AO_SAIR: null,                    // (arquivo único) função chamada ao sair, em vez de redirecionar
     PAGINA_LOGIN: 'login.html',
