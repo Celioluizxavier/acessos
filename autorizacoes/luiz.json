@@ -1,0 +1,8 @@
+{
+  "usuario": "luiz",
+  "senha_hash": "8MSUYxtz7e/zesaIqPg+d85M9HF85+MGBrzeXDKvwLI=",
+  "salt": "vJk7Eo5GP8OB5fRtQFSuZQ==",
+  "vencimento": "2026-11-24T23:59:59-03:00",
+  "assinatura": "lnlxY1KC7AZ1oGcXHtEOR+2U1ijiEMuTSIvwAyaqKp+wrAkFc4Z/nMbujQ0jHBlV0C7Gh85vw7A2FlTb9XWnAA==",
+  "gerado_em": "2026-11-23T10:24:52-03:00"
+}
