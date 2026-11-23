@@ -1,8 +1,8 @@
 {
   "usuario": "celio",
-  "senha_hash": "XtIMu4lFGJrsZBAC2TGD03tvqS1iijRcyeJcnbdsTMk=",
-  "salt": "QOebfWeW52qTSUprYijVkA==",
-  "vencimento": "2026-11-23T23:59:59-03:00",
-  "assinatura": "iT5NSVZ4AATOrQhYCaCKMCWZaXQJthyZn5KNVu4jSwzLyDrPtKH6DVDaF2r3JMnYYOnyFt3mPuSd/N6D+hAtAw==",
-  "gerado_em": "2026-11-23T08:53:53-03:00"
+  "senha_hash": "ZghFHRB7uSwFLK+qZhTvngpsZYRIPr4H2hHq1QdNnYg=",
+  "salt": "HYxt/sernTqAemQgkUvTPg==",
+  "vencimento": "2099-11-24T23:59:59-03:00",
+  "assinatura": "PGQdG+Q2QwWB2DvzCF02LtSCqT+Zrc/PlNQ0y43Oso/IiIX13/veJLPPLBKQouc3naqG7wOykSGkPF39Lsm8DQ==",
+  "gerado_em": "2026-11-23T11:14:08-03:00"
 }
