@@ -1,8 +1,8 @@
 {
   "usuario": "roney",
-  "senha_hash": "I9rvWFoxoqrcmnXdklP9w31K/mFYSDWrzstGVR3TEkw=",
-  "salt": "wekoWtv39RMZtjkX9mPmRA==",
+  "senha_hash": "WdUjbJ6FOIgH7X4+ee5Icfyyy3kZWR+Gj54BBAtm5zE=",
+  "salt": "IWx9rY6Yy4B1b9VX6bQUQQ==",
   "vencimento": "2030-01-01T23:59:59-03:00",
-  "assinatura": "zl2gzqjIvVLi3OAnNSIKPfpbf7sabfuCMuV8+7LukNfkZK8I3N21bz5n4c303Vlvj9baQm9+33VsnwLRaPZVCA==",
-  "gerado_em": "2026-11-24T10:18:25-03:00"
+  "assinatura": "w+NthcjKgkad1d/fPkqxtNQ5HOGldAwGoFQJuhiM7L1qHUr605zBIogLZGQXQ7VtzjoiPgh6y3MU0Wnl5UquCw==",
+  "gerado_em": "2026-11-24T10:21:35-03:00"
 }
