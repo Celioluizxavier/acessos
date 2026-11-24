@@ -1,0 +1,8 @@
+{
+  "usuario": "roney",
+  "senha_hash": "I9rvWFoxoqrcmnXdklP9w31K/mFYSDWrzstGVR3TEkw=",
+  "salt": "wekoWtv39RMZtjkX9mPmRA==",
+  "vencimento": "2030-01-01T23:59:59-03:00",
+  "assinatura": "zl2gzqjIvVLi3OAnNSIKPfpbf7sabfuCMuV8+7LukNfkZK8I3N21bz5n4c303Vlvj9baQm9+33VsnwLRaPZVCA==",
+  "gerado_em": "2026-11-24T10:18:25-03:00"
+}
