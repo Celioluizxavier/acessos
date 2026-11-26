@@ -52,7 +52,7 @@ input[readonly]{background:var(--bg3)}
 .table-wrapper{overflow-x:auto;border:1px solid var(--bd);border-radius:8px}
 table{width:100%;border-collapse:collapse;font-size:.88rem}
 thead th{background:var(--bg3);color:var(--tx2);padding:10px;text-align:right;white-space:nowrap;font-size:.78rem;text-transform:uppercase}
-th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2),th:nth-child(3),td:nth-child(3){text-align:left}
 tbody td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
 tbody tr:nth-child(even){background:var(--bg3)}
 tbody td input{width:100px;padding:5px 8px;text-align:right}
@@ -101,6 +101,7 @@ tfoot td:first-child{text-align:left}
  <div class="form-grid" id="manualForm">
   <div class="form-group" style="grid-column:span 2"><label for="mDesc">Descrição do produto *</label><input type="text" id="mDesc" placeholder="Ex.: Camiseta algodão M"></div>
   <div class="form-group"><label for="mCod">Código (opcional)</label><input type="text" id="mCod" placeholder="Gerado automaticamente"></div>
+  <div class="form-group"><label for="mEan">Código de barras (opcional)</label><input type="text" id="mEan" inputmode="numeric" placeholder="EAN/GTIN, 8 a 14 números"></div>
   <div class="form-group"><label for="mCusto">Custo de compra unitário (R$) *</label><input type="number" id="mCusto" min="0" step="0.01" placeholder="0,00"></div>
   <div class="form-group"><label for="mUn">Unidades por caixa</label><input type="number" id="mUn" value="1" min="1" step="1"></div>
   <div class="form-group"><label for="mIcms">ICMS destacado na compra (R$/un, opcional)</label><input type="number" id="mIcms" min="0" step="0.01" placeholder="0,00"></div>
@@ -170,7 +171,7 @@ tfoot td:first-child{text-align:left}
  <div class="card-title">📊 Tabela de Resultados</div>
  <div id="resultAlert"></div>
  <div class="table-wrapper"><table>
-  <thead><tr><th>Produto</th><th>Código</th><th>Custo NF</th><th>Un. Caixa</th><th>Custo Real</th><th>Preço Calc</th><th>Lucro Calc</th><th>Preço Manual</th><th>Lucro Manual</th><th>Diferença</th><th>DRE</th></tr></thead>
+  <thead><tr><th>Produto</th><th>Código</th><th>Cód. Barras</th><th>Custo NF</th><th>Un. Caixa</th><th>Custo Real</th><th>Preço Calc</th><th>Lucro Calc</th><th>Preço Manual</th><th>Lucro Manual</th><th>Diferença</th><th>DRE</th></tr></thead>
   <tbody id="resultBody"></tbody><tfoot id="resultFoot"></tfoot>
  </table></div>
 </div>
@@ -228,6 +229,8 @@ let produtos=[], chartCalc=null, chartManual=null, manualSeq=0;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const brl=n=>'R$ '+(Number(n)||0).toFixed(2);
+// Código de barras válido: só números, de 8 a 14 dígitos (EAN-8, UPC, EAN-13, GTIN-14). "SEM GTIN" é ignorado.
+const eanValido=s=>/^\d{8,14}$/.test(String(s||'').trim());
 
 function log(msg,type){
  const e=document.createElement('div');e.className='log-'+(type||'info');
@@ -270,6 +273,7 @@ async function handleFiles(files){
     if(!prod)return;
     // cProd/xProd são ELEMENTOS filhos, não atributos
     const cProd=txt(prod,'cProd')||('ITEM-'+(i+1));
+    const ean=[txt(prod,'cEAN'),txt(prod,'cEANTrib')].find(eanValido)||'';
     const xProd=txt(prod,'xProd')||'Produto sem descrição';
     const vProd=num(prod,'vProd'), qCom=num(prod,'qCom')||1;
     const vFrete=num(prod,'vFrete'), vSeg=num(prod,'vSeg'), vOutro=num(prod,'vOutro'), vDesc=num(prod,'vDesc');
@@ -277,15 +281,16 @@ async function handleFiles(files){
     const vST=deepNum(imposto,'vICMSST')||deepNum(imposto,'vST');
     const vIPI=deepNum(imposto,'vIPI');
     const total=vProd-vDesc+vFrete+vSeg+vOutro+vST+vIPI;
-    if(!grouped[cProd])grouped[cProd]={cProd,xProd,total:0,qtd:0,base:0,icms:0};
+    if(!grouped[cProd])grouped[cProd]={cProd,xProd,total:0,qtd:0,base:0,icms:0,ean:''};
+    if(!grouped[cProd].ean&&ean)grouped[cProd].ean=ean;
     grouped[cProd].total+=total;grouped[cProd].qtd+=qCom;grouped[cProd].base+=vProd-vDesc+vFrete+vSeg+vOutro;grouped[cProd].icms+=deepNum(imposto,'vICMS');
    });
    for(const g of Object.values(grouped)){
     const custoUnit=g.total/(g.qtd>0?g.qtd:1);
     // Mesmo produto em outra nota: acumula (itens manuais nunca são mesclados)
     const ex=produtos.find(p=>p.cProd===g.cProd&&!p.manual);
-    if(ex){ex._total+=g.total;ex._qtd+=g.qtd;ex._base+=g.base;ex._icms+=g.icms;ex.custoNF=ex._total/ex._qtd;ex.custoReal=ex.custoNF/ex.unCaixa;}
-    else produtos.push({cProd:g.cProd,xProd:g.xProd,custoNF:custoUnit,unCaixa:1,custoReal:custoUnit,_total:g.total,_qtd:g.qtd,_base:g.base,_icms:g.icms,
+    if(ex){if(!ex.ean&&g.ean)ex.ean=g.ean;ex._total+=g.total;ex._qtd+=g.qtd;ex._base+=g.base;ex._icms+=g.icms;ex.custoNF=ex._total/ex._qtd;ex.custoReal=ex.custoNF/ex.unCaixa;}
+    else produtos.push({cProd:g.cProd,ean:g.ean,xProd:g.xProd,custoNF:custoUnit,unCaixa:1,custoReal:custoUnit,_total:g.total,_qtd:g.qtd,_base:g.base,_icms:g.icms,
      precoCalc:0,lucroCalc:0,precoManual:'',lucroManual:0,dreCalc:null,dreManual:null});
    }
    ok++;itens+=Object.keys(grouped).length;
@@ -320,19 +325,21 @@ function addManual(){
  const custo=parseFloat($('mCusto').value);
  const icms=parseFloat($('mIcms').value)||0;
  const un=Math.max(1,parseInt($('mUn').value)||1);
+ const ean=$('mEan').value.replace(/\D/g,'');
  if(!desc){alert('Informe a descrição do produto.');$('mDesc').focus();return;}
  if(!(custo>0)){alert('Informe um custo de compra unitário maior que zero.');$('mCusto').focus();return;}
  if(icms<0||icms>custo){alert('O ICMS destacado deve estar entre 0 e o custo de compra.');$('mIcms').focus();return;}
+ if(ean&&!eanValido(ean)){alert('O código de barras deve ter de 8 a 14 números.');$('mEan').focus();return;}
  let cod=$('mCod').value.trim();
  if(cod){
   if(produtos.some(p=>p.cProd===cod)){alert('Já existe um item com o código "'+cod+'" na lista.');$('mCod').focus();return;}
  }else{
   do{manualSeq++;cod='MAN-'+manualSeq;}while(produtos.some(p=>p.cProd===cod));
  }
- produtos.push({manual:true,cProd:cod,xProd:desc,custoNF:custo,unCaixa:un,custoReal:custo/un,_total:custo,_qtd:1,_base:custo,_icms:icms,
+ produtos.push({manual:true,cProd:cod,ean:ean,xProd:desc,custoNF:custo,unCaixa:un,custoReal:custo/un,_total:custo,_qtd:1,_base:custo,_icms:icms,
   precoCalc:0,lucroCalc:0,precoManual:'',lucroManual:0,dreCalc:null,dreManual:null});
  log('✍️ Item manual adicionado: '+desc+' ('+cod+'). Total na lista: '+produtos.length+'.','success');
- ['mDesc','mCod','mCusto','mIcms'].forEach(id=>$(id).value='');$('mUn').value='1';
+ ['mDesc','mCod','mEan','mCusto','mIcms'].forEach(id=>$(id).value='');$('mUn').value='1';
  if(!$('resultCard').classList.contains('hidden'))calcularPrecificacao();
  else log('Clique em Calcular Precificação para ver o resultado.','info');
  $('mDesc').focus();
@@ -466,7 +473,7 @@ function renderTable(){
  const tb=$('resultBody');tb.innerHTML='';
  produtos.forEach((p,i)=>{
   const tr=document.createElement('tr');tr.id='row-'+i;
-  tr.innerHTML='<td>'+esc(p.xProd)+(p.manual?'<span class="badge-man">manual</span>':'')+'</td><td>'+esc(p.cProd)+'</td><td>'+brl(p.custoNF)+'</td>'+
+  tr.innerHTML='<td>'+esc(p.xProd)+(p.manual?'<span class="badge-man">manual</span>':'')+'</td><td>'+esc(p.cProd)+'</td><td>'+esc(p.ean||'—')+'</td><td>'+brl(p.custoNF)+'</td>'+
    '<td><input type="number" class="un" min="1" step="1" value="'+p.unCaixa+'"></td>'+
    '<td>'+brl(p.custoReal)+'</td><td>'+brl(p.precoCalc)+'</td><td class="'+cls(p.lucroCalc)+'">'+brl(p.lucroCalc)+'</td>'+
    '<td><input type="number" class="pm" min="0" step="0.01" placeholder="Manual" value="'+p.precoManual+'"></td>'+
@@ -492,14 +499,14 @@ function refreshRows(){
  let sNF=0,sReal=0,sPC=0,sLC=0,sPM=0,sLM=0,sD=0;
  produtos.forEach((p,i)=>{
   const c=$('row-'+i).children,d=diffOf(p);
-  c[4].textContent=brl(p.custoReal);c[5].textContent=brl(p.precoCalc);
-  c[6].textContent=brl(p.lucroCalc);c[6].className=cls(p.lucroCalc);
-  c[8].textContent=brl(p.lucroManual);c[8].className=cls(p.lucroManual);
-  c[9].textContent=brl(d);c[9].className=cls(d);
+  c[5].textContent=brl(p.custoReal);c[6].textContent=brl(p.precoCalc);
+  c[7].textContent=brl(p.lucroCalc);c[7].className=cls(p.lucroCalc);
+  c[9].textContent=brl(p.lucroManual);c[9].className=cls(p.lucroManual);
+  c[10].textContent=brl(d);c[10].className=cls(d);
   sNF+=p.custoNF;sReal+=p.custoReal;sPC+=p.precoCalc;sLC+=p.lucroCalc;sLM+=p.lucroManual;sD+=d;
   sPM+=parseFloat(p.precoManual)>0?parseFloat(p.precoManual):0;
  });
- $('resultFoot').innerHTML='<tr><td>TOTAIS</td><td></td><td>'+brl(sNF)+'</td><td></td><td>'+brl(sReal)+'</td><td>'+brl(sPC)+'</td><td class="'+cls(sLC)+'">'+brl(sLC)+
+ $('resultFoot').innerHTML='<tr><td>TOTAIS</td><td></td><td></td><td>'+brl(sNF)+'</td><td></td><td>'+brl(sReal)+'</td><td>'+brl(sPC)+'</td><td class="'+cls(sLC)+'">'+brl(sLC)+
   '</td><td>'+brl(sPM)+'</td><td class="'+cls(sLM)+'">'+brl(sLM)+'</td><td class="'+cls(sD)+'">'+brl(sD)+'</td><td></td></tr>';
  updateCharts();
 }
@@ -540,10 +547,10 @@ function toggleDRE(i){
  document.querySelectorAll('.dre-btn').forEach(b=>b.textContent='DRE ▼');
  if(aberto)return;
  const p=produtos[i];
- let html='<tr class="dre-expanded"><td colspan="11">';
+ let html='<tr class="dre-expanded"><td colspan="12">';
  if(!p.dreCalc)html+='DRE não disponível (preço inviável).';
  else{
-  html+='<strong>DRE Calculado — '+esc(p.xProd)+'</strong><div class="dre-table"><table><thead><tr><th>Descrição</th><th>Valor</th><th>%</th></tr></thead><tbody>'+dreRows(p.dreCalc)+'</tbody></table></div>';
+  html+='<strong>DRE Calculado — '+esc(p.xProd)+(p.ean?' (cód. barras '+esc(p.ean)+')':'')+'</strong><div class="dre-table"><table><thead><tr><th>Descrição</th><th>Valor</th><th>%</th></tr></thead><tbody>'+dreRows(p.dreCalc)+'</tbody></table></div>';
   if(p.dreManual)html+='<br><strong>DRE Manual</strong><div class="dre-table"><table><thead><tr><th>Descrição</th><th>Valor</th><th>%</th></tr></thead><tbody>'+dreRows(p.dreManual)+'</tbody></table></div>';
  }
  html+='</td></tr>';
@@ -615,7 +622,7 @@ $('chartNext').addEventListener('click',()=>chartStep(1));
 
 /* ===== EXCEL ===== */
 function linhaBase(p){
- return {'Código':p.cProd,'Descrição':p.xProd,'Custo NF':+p.custoNF.toFixed(4),'Un. Caixa':p.unCaixa,'Custo Real':+p.custoReal.toFixed(4),
+ return {'Código':p.cProd,'Código de Barras':p.ean||'','Descrição':p.xProd,'Custo NF':+p.custoNF.toFixed(4),'Un. Caixa':p.unCaixa,'Custo Real':+p.custoReal.toFixed(4),
   'Preço Calc':p.precoCalc,'Lucro Calc':+p.lucroCalc.toFixed(2),'Preço Manual':p.precoManual===''?'':parseFloat(p.precoManual),
   'Lucro Manual':+p.lucroManual.toFixed(2),'Diferença':+diffOf(p).toFixed(2)};
 }
@@ -623,6 +630,7 @@ function exportarExcel(){
  if(!produtos.length)return;
  if(typeof XLSX==='undefined'){alert('Biblioteca XLSX não carregou. Verifique a conexão com a internet.');return;}
  const ws=XLSX.utils.json_to_sheet(produtos.map(linhaBase)),wb=XLSX.utils.book_new();
+ ws['!cols']=[{wch:14},{wch:18},{wch:36}];
  XLSX.utils.book_append_sheet(wb,ws,'Precificação');
  XLSX.writeFile(wb,'Precificacao_v14_'+new Date().toISOString().slice(0,10)+'.xlsx');
  log('Arquivo Excel exportado.','success');
@@ -644,7 +652,7 @@ function exportarExcelDRE(){
  });
  const ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();
  const cols=Object.keys(rows[0]);
- ws['!cols']=cols.map((c,i)=>({wch:i===1?36:Math.min(30,Math.max(12,c.length*0.8))}));
+ ws['!cols']=cols.map(c=>({wch:c==='Descrição'?36:c==='Código de Barras'?18:Math.min(30,Math.max(12,c.length*0.8))}));
  XLSX.utils.book_append_sheet(wb,ws,'Precificação + DRE');
  XLSX.writeFile(wb,'Precificacao_DRE_v14_'+new Date().toISOString().slice(0,10)+'.xlsx');
  log('Arquivo Excel com DRE exportado.','success');
